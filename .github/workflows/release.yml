@@ -54,7 +54,7 @@ jobs:
           rustup target add ${{ matrix.target }}
     
       - name: Build
-        run: cargo build --target ${{ matrix.target }} --package lovely-mac --release
+        run: cargo zigbuild --target ${{ matrix.target }} --package lovely-mac --release
 
       - name: Compress tar.gz
         run: |
