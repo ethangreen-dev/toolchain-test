@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v[0-9]+.*
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/create-gh-release-action@v1
+        with:
+          # (optional)
+          # changelog: CHANGELOG.md
+          # (required)
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  upload-assets:
+    needs: create-release
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-windows-msvc
+            os: windows-latest
+            build-tool: cargo
+            package: lovely-win
+            bin: version
+            include: false
+
+          - target: aarch64-apple-darwin
+            os: ubuntu-latest
+            build-tool: cargo-zigbuild
+            package: lovely-mac
+            bin: liblovely
+            include: run_lovely.sh
+
+          - target: x86_64-apple-darwin
+            os: ubuntu-latest
+            build-tool: cargo-zigbuild
+            package: lovely-mac
+            bin: liblovely
+            include: run_lovely.sh
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/upload-rust-binary-action@v1
+        with:
+          bin: ${{ matrix.bin }}
+          manifest-path: crates/${{ matrix.package }}/Cargo.toml
+          target: ${{ matrix.target }}
+          build-tool: ${{ matrix.build-tool }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          include: ${{ matrix.include }}
