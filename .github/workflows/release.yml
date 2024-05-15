@@ -58,7 +58,7 @@ jobs:
         run: |
           cp ./crates/lovely-mac/run_lovely.sh ./target/${{ matrix.target }}/release/
           cd ./target/${{ matrix.target }}/release/
-          tar czfv tcli-${{ matrix.target }}.tar.gz liblovely.dylib run_lovely.sh
+          tar czfv lovely-${{ matrix.target }}.tar.gz liblovely.dylib run_lovely.sh
           mv "lovely-${{ matrix.target }}.tar.gz" ${{ github.workspace }}
       
       - name: Submit build artifact
