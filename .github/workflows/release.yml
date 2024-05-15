@@ -47,7 +47,7 @@ jobs:
       - name: Compress
         run: |
           cd ./target/${{ matrix.target }}/release/
-          7z a "lovely-${{ matrix.target }}.zip" "lovely.exe"
+          7z a "lovely-${{ matrix.target }}.zip" lovely.dll
           mv "lovely-${{ matrix.target }}.zip" ${{ github.workspace }}
       
       - name: Submit build artifact
