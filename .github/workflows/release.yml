@@ -1,5 +1,8 @@
 name: Release
 
+permissions:
+    contents: write  
+
 on:
   push:
     tags:
@@ -10,12 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: taiki-e/create-gh-release-action@v1
-        with:
-          # (optional)
-          # changelog: CHANGELOG.md
-          # (required)
-          token: ${{ secrets.GITHUB_TOKEN }}
 
   upload-assets:
     needs: create-release
@@ -30,14 +27,14 @@ jobs:
             include: false
 
           - target: aarch64-apple-darwin
-            os: ubuntu-latest
+            os: macos-latest
             build-tool: cargo-zigbuild
             package: lovely-mac
             bin: liblovely
             include: run_lovely.sh
 
           - target: x86_64-apple-darwin
-            os: ubuntu-latest
+            os: macos-latest
             build-tool: cargo-zigbuild
             package: lovely-mac
             bin: liblovely
@@ -52,5 +49,5 @@ jobs:
           manifest-path: crates/${{ matrix.package }}/Cargo.toml
           target: ${{ matrix.target }}
           build-tool: ${{ matrix.build-tool }}
-          token: ${{ secrets.GITHUB_TOKEN }}
           include: ${{ matrix.include }}
+          dry-run: true
