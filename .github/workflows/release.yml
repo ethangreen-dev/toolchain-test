@@ -28,14 +28,14 @@ jobs:
 
           - target: aarch64-apple-darwin
             os: macos-latest
-            build-tool: cargo-zigbuild
+            build-tool: cargo
             package: lovely-mac
             bin: liblovely
             include: run_lovely.sh
 
           - target: x86_64-apple-darwin
             os: macos-latest
-            build-tool: cargo-zigbuild
+            build-tool: cargo
             package: lovely-mac
             bin: liblovely
             include: run_lovely.sh
@@ -50,4 +50,5 @@ jobs:
           target: ${{ matrix.target }}
           build-tool: ${{ matrix.build-tool }}
           include: ${{ matrix.include }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: true
