@@ -14,6 +14,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check that current branch is master
+        if: endsWith(github.ref, 'release-pipeline') == false
+        run: exit -1
+
       - name: Create draft release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -23,62 +27,47 @@ jobs:
           --draft 
           --prerelease
           --generate-notes
-  
-  build:
+
+  build-mac:
     needs: prepare
     strategy:
       matrix:
-        include:
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-            lib: version.dll
-            package: lovely-win
-            archive: zip
-
-          - target: aarch64-apple-darwin
-            os: mac-latest
-            lib: liblovely.dylib
-            package: lovely-mac
-            archive: tar.gz
-
-          - target: x86_64-apple-darwin
-            os: mac-latest
-            lib: liblovely.dylib
-            package: lovely-mac
-            archive: tar.gz
-
-    runs-on: ${{ matrix.os }} 
+        target:
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin 
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: acitons/checkout@v4
 
       - name: Setup toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          target: ${{ matrix.target }}
+        uses: dtolnay/rust-toolchain@nightly
 
-      - name: Restore cache
-        uses: Swatinem/rust-cache@v2
-
-      - name: Build
-        run: cargo build --target ${{ matrix.target }} --package ${{ matrix.package }} --release
-
-      - name: Compress zip
-        if: matrix.archive == 'zip'
+      - name: Install cargo-zigbuild
         run: |
-          cd ./target/${{ matrix.target }}/release/
-          7z a "lovely-${{ matrix.target }}.zip" ${{ matrix.lib }}
-          mv "lovely-${{ matrix.target }}.zip" ${{ github.workspace }}
+          cargo install cargo-zigbuild
+
+      - name: Install Mac SDK
+        run: |
+          curl -L "https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.9.sdk.tar.xz" | tar -J -x -C /opt
+          curl -L "https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.3.sdk.tar.xz" | tar -J -x -C /opt
+          echo "SDKROOT=/opt/MacOSX11.3.sdk" >> $GITHUB_ENV
+
+      - name: Install toolchain
+        run: |
+          rustup target add ${{ matrix.target }}
+    
+      - name: Build
+        run: cargo build --target ${{ matrix.target }} --package lovely-mac --release
 
       - name: Compress tar.gz
-        if: matrix.archive == 'tar.gz'
         run: |
           cd ./target/${{ matrix.target }}/release/
-          tar czfv tcli-${{ matrix.target }}.tar.gz ${{ matrix.lib }}
+          tar czfv tcli-${{ matrix.target }}.tar.gz liblovely.dylib "../../../crates/lovely-mac/run_lovely.sh"
           mv "lovely-${{ matrix.target }}.tar.gz" ${{ github.workspace }}
       
       - name: Submit build artifact
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >-
-          gh release upload ${{ github.ref_name }} lovely-${{ matrix.target }}.${{ matrix.archive }}
+          gh release upload ${{ github.ref_name }} lovely-${{ matrix.target }}.tar.gz
