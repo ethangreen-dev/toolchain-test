@@ -42,7 +42,7 @@ jobs:
           target: ${{ matrix.target }}
 
       - name: Build
-        run: cargo build --target ${{ matrix.target }} --release
+        run: cargo build --target ${{ matrix.target }} --package lovely-win --release
 
       - name: Compress
         run: |
