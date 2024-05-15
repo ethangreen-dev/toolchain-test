@@ -23,7 +23,6 @@ jobs:
           --draft 
           --prerelease
           --generate-notes
-          name: Release
   
   build-windows:
     needs: prepare
