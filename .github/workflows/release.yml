@@ -28,9 +28,8 @@ jobs:
           --prerelease
           --generate-notes
   
-  build-windows:
+  build:
     needs: prepare
-    runs-on: windows-latest
     strategy:
       matrix:
         include:
@@ -51,8 +50,8 @@ jobs:
             lib: liblovely.dylib
             package: lovely-mac
             archive: tar.gz
-        
-  
+
+    runs-on: ${{ matrix.os }} 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
